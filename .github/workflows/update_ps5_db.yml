@@ -11,8 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Récupérer le code
-        uses: actions/checkout@v3
+      
+    - name: Récupérer le code
+      uses: actions/checkout@v3
+      with:
+        persist-credentials: true
+        fetch-depth: 0
 
       - name: Configurer Python
         uses: actions/setup-python@v4
@@ -27,11 +31,11 @@ jobs:
       - name: Générer la base CSV
         run: python ps5_rachat_full_process.py
 
-      - name: Commit et push du CSV mis à jour
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: 'github-actions[bot]'
-          author_email: 'github-actions[bot]@users.noreply.github.com'
-          message: '🚀 Mise à jour automatisée de la base PS5'
-          add: 'ps5_rachat_full_process.csv'
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - - name: Commit et push du CSV mis à jour
+  uses: EndBug/add-and-commit@v9
+  with:
+    author_name:  'github-actions[bot]'
+    author_email: 'github-actions[bot]@users.noreply.github.com'
+    message:      '🚀 Mise à jour automatisée de la base PS5'
+    add:          'ps5_rachat_full_process.csv'
+    github_token: ${{ secrets.GITHUB_TOKEN }}
