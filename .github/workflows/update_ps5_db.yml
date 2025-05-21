@@ -1,0 +1,36 @@
+name: Mise à jour base PS5
+
+on:
+  # Déclencher manuellement ou chaque semaine
+  schedule:
+    - cron: '0 2 * * MON'   # tous les lundis à 02:00 UTC
+  workflow_dispatch:        # permet de lancer à la demande
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v3
+
+      - name: Configurer Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Installer dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests beautifulsoup4 lxml
+
+      - name: Générer la base CSV
+        run: python ps5_rachat_full_process.py
+
+      - name: Commit et push du CSV mis à jour
+        uses: EndBug/add-and-commit@v10
+        with:
+          author_name: 'github-actions[bot]'
+          author_email: 'github-actions[bot]@users.noreply.github.com'
+          message: '🚀 Mise à jour automatisée de la base PS5'
+          add: 'ps5_rachat_full_process.csv'
