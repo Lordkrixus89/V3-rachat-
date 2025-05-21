@@ -39,15 +39,22 @@ def get_lowest_price_leboncoin_ps5(game):
 
 # 1) Récupération de la liste des jeux PS5
 wiki_url = "https://en.wikipedia.org/wiki/List_of_PlayStation_5_games"
-tables = pd.read_html(wiki_url)
-# On récupère la table entière
-df = tables[0]
+tables   = pd.read_html(wiki_url)
 
-# On prend la première colonne, quelle que soit son étiquette
-first_col = df.columns[0]
+# 2) On recherche la table qui a une colonne "Title"
+df = None
+for tbl in tables:
+    cols = [str(c) for c in tbl.columns]
+    if any("Title" in c for c in cols):
+        df = tbl
+        break
+if df is None:
+    raise RuntimeError("Table des jeux PS5 introuvable")
 
-# On renomme cette colonne en "nom"
-df_games = df[[first_col]].rename(columns={ first_col: "nom" })
+# 3) On prend la première colonne et on la renomme en "nom"
+first_col  = df.columns[0]
+df_games   = df[[first_col]].rename(columns={ first_col: "nom" })
+
 
 # 2) Scraping des prix et calcul du rachat
 records = []
