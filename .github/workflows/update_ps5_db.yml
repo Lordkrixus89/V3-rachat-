@@ -1,20 +1,23 @@
 name: Mise à jour base PS5
 
+permissions:
+  contents: write
+
 on:
-  workflow_dispatch:      # lancement manuel
+  workflow_dispatch:
   schedule:
-    - cron: '0 2 * * MON' # tous les lundis à 02:00 UTC
+    - cron: '0 2 * * MON'
 
 jobs:
   update-db:
     runs-on: ubuntu-latest
-
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v3
         with:
           persist-credentials: true
           fetch-depth: 0
+    
 
       - name: Configurer Python
         uses: actions/setup-python@v4
