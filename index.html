@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Simulateur Rachat PS5</title>
+  <style>
+    body { font-family: sans-serif; padding:1rem; max-width:400px; margin:auto }
+    input { width:100%; padding:.5rem; font-size:1rem; margin-bottom:1rem }
+    .card { border:1px solid #ccc; padding:1rem; border-radius:4px }
+  </style>
+</head>
+<body>
+  <h1>Simulateur Rachat PS5</h1>
+  <input id="search" placeholder="Ex : Elden Ring PS5" />
+  <div id="result"></div>
+
+  <script>
+    const jeux = [
+      { nom:'Elden Ring', plateforme:'PS5', revente:30,   rachat:10,   risque:2 },
+      { nom:'Astro Bot',   plateforme:'PS5', revente:44.99, rachat:15,   risque:2 },
+      { nom:'FIFA 23',     plateforme:'PS5', revente:5,    rachat:1.66, risque:5 },
+      { nom:'Sifu',        plateforme:'PS5', revente:20,   rachat:6.66, risque:3 },
+      { nom:'New Super Mario Bros.', plateforme:'DS (complet)', revente:18.75, rachat:6.25, risque:2 }
+    ];
+
+    const inp=document.getElementById('search'), out=document.getElementById('result');
+    inp.addEventListener('input',()=>{
+      const q=inp.value.toLowerCase().trim();
+      const j=jeux.find(x=>(x.nom+' '+x.plateforme).toLowerCase().includes(q));
+      if(!q) return out.innerHTML='';
+      out.innerHTML = j
+        ? `<div class="card">
+            <h2>${j.nom} (${j.plateforme})</h2>
+            <p><strong>Revente rapide :</strong> ${j.revente} €</p>
+            <p><strong>Rachat X3 :</strong> ${j.rachat.toFixed(2)} €</p>
+            <p><strong>Risque :</strong> ${j.risque}/5</p>
+          </div>`
+        : '<p>Jeu non répertorié.</p>';
+    });
+  </script>
+</body>
+</html>
