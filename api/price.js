@@ -1,16 +1,42 @@
-// api/price.js
-
 import axios from 'axios';
 import cheerio from 'cheerio';
 
 async function scrapeEbay(query) {
-  // À compléter avec ton code réel si tu as un scraping précis
-  return null;
+  try {
+    const url = `https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_BIN=1`;
+    const { data } = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    });
+    const $ = cheerio.load(data);
+    let prices = [];
+    $('span.s-item__price').each((i, el) => {
+      const txt = $(el).text().replace(/[^\d,.]/g, '').replace(',', '.');
+      const price = parseFloat(txt);
+      if (!isNaN(price)) prices.push(price);
+    });
+    return prices.length ? Math.min(...prices) : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function scrapeLeboncoin(query) {
-  // À compléter avec ton code réel si tu as un scraping précis
-  return null;
+  try {
+    const url = `https://www.leboncoin.fr/recherche?category=5805&text=${encodeURIComponent(query)}`;
+    const { data } = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    });
+    const $ = cheerio.load(data);
+    let prices = [];
+    $('span.AdCard_price__1L0bX').each((i, el) => {
+      const txt = $(el).text().replace(/[^\d,.]/g, '').replace(',', '.');
+      const price = parseFloat(txt);
+      if (!isNaN(price)) prices.push(price);
+    });
+    return prices.length ? Math.min(...prices) : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 export default async (req, res) => {
@@ -18,22 +44,17 @@ export default async (req, res) => {
   if (!game) return res.status(400).json({ error: 'Paramètre game manquant' });
 
   const q = `${game} ${platform}`;
-
-  // Appel des scrapers (ajoute tes vraies fonctions)
   const [ebay, lbc] = await Promise.all([
     scrapeEbay(q),
     scrapeLeboncoin(q)
   ]);
-
   const cand = [ebay, lbc].filter(x => x != null);
   if (cand.length === 0) {
     return res.json({ revente: null, rachat: null, risque: null });
   }
-
   const revente = Math.min(...cand);
   const rachat = +(revente / 3).toFixed(2);
 
-  // Jauge de risque
   let risque;
   if (revente >= 40) risque = 1;
   else if (revente >= 30) risque = 2;
