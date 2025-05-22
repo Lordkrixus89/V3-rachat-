@@ -3,41 +3,62 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Simulateur Rachat PS5</title>
+  <title>Simulateur Rachat</title>
   <style>
-    body { font-family: sans-serif; padding:1rem; max-width:400px; margin:auto }
-    input { width:100%; padding:.5rem; font-size:1rem; margin-bottom:1rem }
-    .card { border:1px solid #ccc; padding:1rem; border-radius:4px }
+    body { font-family:sans-serif; padding:1rem; max-width:450px; margin:auto }
+    input, select { width:100%; padding:.5rem; font-size:1rem; margin-bottom:.75rem }
+    .card { border:1px solid #ccc; padding:1rem; border-radius:4px; margin-bottom:1rem }
   </style>
 </head>
 <body>
-  <h1>Simulateur Rachat PS5</h1>
-  <input id="search" placeholder="Ex : Elden Ring PS5" />
+  <h1>Simulateur Rachat</h1>
+
+  <select id="platform">
+    <option>PS1</option><option>PS2</option><option>PS3</option><option>PS4</option>
+    <option selected>PS5</option><option>Switch</option><option>GameCube</option>
+    <option>N64</option><option>Wii</option>
+  </select>
+
+  <input id="search" placeholder="Ex : Elden Ring, Zelda BOTW…" />
+
   <div id="result"></div>
 
   <script>
-    const jeux = [
-      { nom:'Elden Ring', plateforme:'PS5', revente:30,   rachat:10,   risque:2 },
-      { nom:'Astro Bot',   plateforme:'PS5', revente:44.99, rachat:15,   risque:2 },
-      { nom:'FIFA 23',     plateforme:'PS5', revente:5,    rachat:1.66, risque:5 },
-      { nom:'Sifu',        plateforme:'PS5', revente:20,   rachat:6.66, risque:3 },
-      { nom:'New Super Mario Bros.', plateforme:'DS (complet)', revente:18.75, rachat:6.25, risque:2 }
-    ];
+    const inp    = document.getElementById('search')
+    const plat   = document.getElementById('platform')
+    const out    = document.getElementById('result')
+    let debounce
 
-    const inp=document.getElementById('search'), out=document.getElementById('result');
     inp.addEventListener('input',()=>{
-      const q=inp.value.toLowerCase().trim();
-      const j=jeux.find(x=>(x.nom+' '+x.plateforme).toLowerCase().includes(q));
-      if(!q) return out.innerHTML='';
-      out.innerHTML = j
-        ? `<div class="card">
-            <h2>${j.nom} (${j.plateforme})</h2>
-            <p><strong>Revente rapide :</strong> ${j.revente} €</p>
-            <p><strong>Rachat X3 :</strong> ${j.rachat.toFixed(2)} €</p>
-            <p><strong>Risque :</strong> ${j.risque}/5</p>
-          </div>`
-        : '<p>Jeu non répertorié.</p>';
-    });
+      clearTimeout(debounce)
+      debounce = setTimeout(async()=>{
+        const raw = inp.value.trim()
+        if(!raw){ out.innerHTML=''; return }
+        const platform = plat.value
+        const games   = raw.split(',').map(s=>s.trim()).filter(Boolean)
+        out.innerHTML = '<p>⏳ Recherche…</p>'
+
+        const results = await Promise.all(games.map(async game=>{
+          try{
+            const res = await fetch(`/api/price?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}`)
+            return { game, ...(await res.json()) }
+          }catch{
+            return { game, revente:null, rachat:null, risque:null }
+          }
+        }))
+
+        out.innerHTML = results.map(r=>{
+          if(r.revente==null) return `<p>${r.game} (${platform}) : introuvable.</p>`
+          return `
+            <div class="card">
+              <h2>${r.game} (${platform})</h2>
+              <p><strong>Revente rapide :</strong> ${r.revente} €</p>
+              <p><strong>Rachat X3 :</strong> ${r.rachat} €</p>
+              <p><strong>Risque :</strong> ${r.risque}/5</p>
+            </div>`
+        }).join('')
+      }, 300)
+    })
   </script>
 </body>
 </html>
